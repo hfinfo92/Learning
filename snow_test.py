@@ -1,17 +1,16 @@
+#%%
 import snowflake.snowpark as snowpark
+from snowpark import session
 
 connection_parameters = {
-  "account": "LTNLEZV-NG67871",
+  "account": "LTNLEZV-NG67871.snowflakecomputing.com",
   "user": "LATEHAR",
-  "password" : "Latehar@12345678",
+  "authenticator" : "externalbrowser",
   "role": "ACCOUNTADMIN",  # optional
   "warehouse": "COMPUTE_WH",  # optional
   "database": "LEARNING",  # optional
   "schema": "TEST",  # optional
 }
 
-session = snowpark.Session.builder.configs(connection_parameters).create()
+session = Session.builder.configs(connection_parameters).create()
 
-df = session.table("test").collect()
-print(df)
-session.close()
