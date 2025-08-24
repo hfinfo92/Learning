@@ -24,7 +24,9 @@ def read_csv_to_snowflake(session, file_path, table_name):
     # Write Snowpark DataFrame to Snowflake table
     snowpark_df.write.mode("overwrite").save_as_table(table_name)
 
-def main():
+
+#/workspaces/Learning/datasources/iris.csv
+if __name__ == "__main__":
     # Read CSV from datasources folder in the repository
     repo_root = os.path.dirname(os.path.abspath(__file__))
     data_folder = os.path.join(repo_root, "datasources")
@@ -35,6 +37,3 @@ def main():
     df = session.table(table_name).collect()
     print(df)
     session.close()
-
-if __name__ == "__main__":
-    main()
