@@ -78,6 +78,7 @@ if __name__ == "__main__":
     # Load data into Snowflake
     res=load_to_snowflake(session, transformed_df,target)
     print(res)
+    print("ETL process completed successfully.")
 
     # Close the session
     session.close()
