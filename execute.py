@@ -4,7 +4,7 @@ import snowflake.snowpark as snowpark
 import pandas as pd
 from snowflake.snowpark import Session
 import os
-
+#this is the main ETL script
 # Define connection parameters
 connection_parameters = {
     "account": "LTNLEZV-NG67871",
