@@ -34,8 +34,23 @@ def extract_from_snowflake(session, table_name):
     return df
 
 def transform(df):
-    # Perform any necessary transformations on the DataFrame
-    # For example, let's just return the DataFrame as is
+    # Drop rows with missing values
+    df = df.dropna()
+    # Add FULL_NAME column (corrected column name)
+    if 'EMPLOYEE_NAME' in df.columns and 'EMPID' in df.columns:
+        df['FULL_NAME'] = df['EMPLOYEE_NAME'] + ' ' + df['EMPID'].astype(str)
+    else:
+        df['FULL_NAME'] = None
+
+    # Add a new column: ANNUAL_SALARY (example: MONTHLY_INCOME * 12)
+    if 'MONTHLY_INCOME' in df.columns:
+        df['ANNUAL_SALARY'] = df['MONTHLY_INCOME'] * 12
+    else:
+        df['ANNUAL_SALARY'] = None  # or set to 0 or another default value
+
+    # Add any other new columns as needed
+    df['DATA_SOURCE'] = 'Snowflake'
+
     return df
 
 def load(session,df,target):  
