@@ -1,3 +1,5 @@
+from io import StringIO
+import requests
 import snowflake.snowpark as snowpark
 import pandas as pd
 from snowflake.snowpark import Session
@@ -11,29 +13,71 @@ connection_parameters = {
     "role": "ACCOUNTADMIN",  # optional
     "warehouse": "COMPUTE_WH",  # optional
     "database": "LEARNING",  # optional
-    "schema": "TEST",  # optional
+    "schema": "TEST"  # optional
+    
 }
-# Create a Snowpark session
-session = snowpark.Session.builder.configs(connection_parameters).create()
-
-def read_csv_to_snowflake(session, file_path, table_name):
-    # Read CSV file into a Pandas DataFrame
-    df = pd.read_csv(file_path)
-    # Convert Pandas DataFrame to Snowpark DataFrame
-    snowpark_df = session.create_dataframe(df)
-    # Write Snowpark DataFrame to Snowflake table
-    snowpark_df.write.mode("overwrite").save_as_table(table_name)
 
 
-#/workspaces/Learning/datasources/iris.csv
+def extract_from_github(url):
+    response = requests.get(url)
+    response.raise_for_status()  # Ensure we got a successful response
+    csv_data = StringIO(response.text)
+    df = pd.read_csv(csv_data)
+    return df
+
+def extract(session,source):
+    df = pd.read_sql(source)
+    return df
+
+def extract_from_snowflake(session, table_name):
+    df = session.table(table_name).to_pandas()
+    return df
+
+def transform(df):
+    # Perform any necessary transformations on the DataFrame
+    # For example, let's just return the DataFrame as is
+    return df
+
+def load(session,df,target):  
+    session.write_pandas(
+            df,
+            table_name=target,
+            auto_create_table=True, # Automatically creates the table
+            overwrite=True          # Overwrites the table if it exists
+        )
+    print(f"Data successfully loaded into table: {target}")
+
+def load_to_snowflake(session, df, target):
+    df = session.create_dataframe(df)
+    df.write.mode("overwrite").save_as_table(target
+    )
+    print(f"Data successfully loaded into table: {target}")
+
+#https://raw.githubusercontent.com/hfinfo92/Learning/refs/heads/main/datasources/Employee.csv
+# github_raw_url = "https://raw.githubusercontent.com/datasets/human-resources/main/data/HRDataset_v14.csv"
 if __name__ == "__main__":
+    
+    # Create a Snowflake session
+    session = Session.builder.configs(connection_parameters).create()
+
+
     # Read CSV from datasources folder in the repository
-    repo_root = os.path.dirname(os.path.abspath(__file__))
-    data_folder = os.path.join(repo_root, "datasources")
-    file_path = os.path.join(data_folder, "iris.csv")
-    table_name = "test"
-    print(f"Reading data from {file_path} and writing to Snowflake table {table_name}") 
-    read_csv_to_snowflake(session, file_path, table_name)
-    df = session.table(table_name).collect()
-    print(df)
+    github_raw_url = "https://raw.githubusercontent.com/hfinfo92/Learning/refs/heads/main/datasources/HRDataset_v14.csv"
+    
+    # Extract data
+    source = 'learning.test."hr_dataset"'
+    target = 'ods.learning.hr_dataset'
+
+    # extract data
+    df = extract_from_snowflake(session,source)
+    print(df.head())
+
+    # Transform data
+    transformed_df = transform(df)
+
+    # Load data into Snowflake
+    res=load_to_snowflake(session, transformed_df,target)
+    print(res)
+
+    # Close the session
     session.close()
